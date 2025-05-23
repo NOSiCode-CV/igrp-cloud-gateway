@@ -1,0 +1,27 @@
+# Maven
+target/
+!target/igrp-cloud-gateway-*.jar
+.mvn/
+mvnw
+mvnw.cmd
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Logs
+logs/
+*.log
+
+# Temp files
+*.tmp
+*.bak

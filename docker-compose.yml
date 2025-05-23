@@ -1,0 +1,35 @@
+services:
+  eureka-server:
+    image: springcloud/eureka:latest
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+    networks:
+      - igrp-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Uncomment to run the gateway as a container
+  # igrp-gateway:
+  #   build: .
+  #   container_name: igrp-gateway
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - SPRING_PROFILES_ACTIVE=dev
+  #     - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+  #   networks:
+  #     - igrp-network
+  #   depends_on:
+  #     eureka-server:
+  #       condition: service_healthy
+
+networks:
+  igrp-network:
+    driver: bridge
