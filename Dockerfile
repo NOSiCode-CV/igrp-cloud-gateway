@@ -1,9 +1,9 @@
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
-COPY target/igrp-cloud-gateway-*.jar app.jar
+COPY target/igrp-cloud-gateway-*.jar igrp-cloud-gateway.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "igrp-cloud-gateway.jar"]
