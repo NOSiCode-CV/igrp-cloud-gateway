@@ -1,0 +1,26 @@
+# Eureka client configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+# Kubernetes configuration
+spring:
+  cloud:
+    kubernetes:
+      config:
+        enable-api: false
+        enabled: false
+      discovery:
+        enabled: false
+      loadbalancer:
+        enabled: false
+
+# Logging configuration
+logging:
+  level:
+    root: ${GATEWAY_LOG_LEVEL:DEBUG}
+    cv.igrp.platform: ${GATEWAY_LOG_LEVEL:DEBUG}
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:DEBUG}

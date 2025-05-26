@@ -1,0 +1,27 @@
+# Eureka client configuration (disabled in production, using Kubernetes instead)
+eureka:
+  client:
+    enabled: false
+
+# Kubernetes configuration
+spring:
+  cloud:
+    kubernetes:
+      config:
+        enable-api: true
+        enabled: true
+      discovery:
+        enabled: true
+        all-namespaces: false
+        wait-cache-ready: true
+      loadbalancer:
+        enabled: true
+      reload:
+        enabled: true
+
+# Logging configuration
+logging:
+  level:
+    root: ${GATEWAY_LOG_LEVEL:INFO}
+    cv.igrp.platform: ${GATEWAY_LOG_LEVEL:INFO}
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:INFO}

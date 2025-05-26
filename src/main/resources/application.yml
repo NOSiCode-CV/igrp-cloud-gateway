@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: igrp-cloud-gateway
+  # Default profile to use when not specified
+  profiles:
+    default: ${SPRING_ACTIVE_PROFILE:dev}
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+# Server configuration
+server:
+  port: ${GATEWAY_PORT:8080}
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
