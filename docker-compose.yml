@@ -1,6 +1,6 @@
 services:
   eureka-server:
-    image: springcloud/eureka:latest
+    image: steeltoeoss/eureka-server:latest
     container_name: eureka-server
     ports:
       - "8761:8761"

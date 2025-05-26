@@ -32,10 +32,17 @@
         <spring-cloud-kubernetes.version>3.0.4</spring-cloud-kubernetes.version>
     </properties>
     <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -47,7 +54,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Spring Cloud Kubernetes -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
@@ -60,6 +66,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-kubernetes-client-loadbalancer</artifactId>
         </dependency>
+
     </dependencies>
     <dependencyManagement>
         <dependencies>
