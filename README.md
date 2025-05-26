@@ -32,8 +32,8 @@ Add the following dependency to your project's pom.xml:
 
 The gateway supports two profiles:
 
-1. **dev** - Development environment using Eureka for service discovery
-2. **prod** - Production environment using Kubernetes for service discovery
+1. **development** - Development environment using Eureka for service discovery
+2. **production** - Production environment using Kubernetes for service discovery
 
 #### Activating a Profile
 
@@ -41,16 +41,16 @@ To activate a profile, set the `spring.profiles.active` property:
 
 ```
 # For development
-spring.profiles.active=dev
+spring.profiles.active=development
 
 # For production
-spring.profiles.active=prod
+spring.profiles.active=production
 ```
 
 You can set this property in your application.properties/application.yml file or as a command-line argument:
 
 ```
-java -jar your-application.jar --spring.profiles.active=prod
+java -jar your-application.jar --spring.profiles.active=production
 ```
 
 ### Development Profile (dev)
@@ -106,7 +106,7 @@ docker-compose up -d --build
 
 The gateway will be available at http://localhost:8080 and will automatically register with Eureka.
 
-### Production Profile (prod)
+### Production Profile (production)
 
 In production mode, the gateway uses Kubernetes for service discovery. The application must be deployed in a Kubernetes cluster with the appropriate permissions to access the Kubernetes API.
 
