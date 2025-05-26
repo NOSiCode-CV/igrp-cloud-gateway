@@ -8,9 +8,9 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * Main application class for IGRP Cloud Gateway.
  * This gateway can be used as a library in other projects and supports both
  * Kubernetes and Eureka service discovery based on the active profile.
- * 
- * Use 'dev' profile for local development with Eureka.
- * Use 'prod' profile for production deployment with Kubernetes.
+ * <p>
+ * Use the 'dev' profile for local development with Eureka.
+ * Use the 'prod' profile for production deployment with Kubernetes.
  */
 @SpringBootApplication
 @EnableDiscoveryClient
