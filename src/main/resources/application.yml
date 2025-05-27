@@ -3,7 +3,7 @@ spring:
     name: igrp-cloud-gateway
   # Default profile to use when not specified
   profiles:
-    default: ${SPRING_ACTIVE_PROFILE:development}
+    default: ${SPRING_PROFILES_ACTIVE:development}
   cloud:
     gateway:
       discovery:
