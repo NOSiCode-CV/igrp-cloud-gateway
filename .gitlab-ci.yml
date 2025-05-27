@@ -14,7 +14,7 @@ stages:
 build_docker_image:
   stage: build
   only:
-    - main
+    - master
   script:
     - docker login -u "$DOCKER_REGISTRY_USERNAME" -p "$DOCKER_REGISTRY_PASSWORD" "$DOCKER_REGISTRY"
     - docker build -t $DOCKER_REGISTRY/$DOCKER_PROJECT/igrp-gateway .
@@ -25,7 +25,7 @@ deploy:
   image: gcc:latest
   stage: deploy
   only:
-    - main
+    - master
   script:
     - |
       curl -u "$DEPLOY_USER:$DEPLOY_PASSWORD" \
