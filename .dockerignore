@@ -1,9 +1,6 @@
 # Maven
 target/
 !target/igrp-cloud-gateway-*.jar
-.mvn/
-mvnw
-mvnw.cmd
 
 # Git
 .git/
@@ -19,7 +16,6 @@ mvnw.cmd
 .settings/
 
 # Logs
-logs/
 *.log
 
 # Temp files
