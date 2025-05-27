@@ -1,0 +1,35 @@
+image: docker:27.5.1
+services:
+  - name: docker:27.5.1-dind
+    command: [ "--tls=false", "--mtu=1240" ]
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_REGISTRY: registry.nosi.cv
+  DOCKER_PROJECT: igrp
+stages:
+  - build
+  - deploy
+build_docker_image:
+  stage: build
+  only:
+    - main
+  script:
+    - docker login -u "$DOCKER_REGISTRY_USERNAME" -p "$DOCKER_REGISTRY_PASSWORD" "$DOCKER_REGISTRY"
+    - docker build -t $DOCKER_REGISTRY/$DOCKER_PROJECT/igrp-gateway .
+    - docker tag $DOCKER_REGISTRY/$DOCKER_PROJECT/igrp-gateway $DOCKER_REGISTRY/$DOCKER_PROJECT/igrp-gateway:$CI_PIPELINE_ID
+    - docker push $DOCKER_REGISTRY/$DOCKER_PROJECT/igrp-gateway
+    - docker push $DOCKER_REGISTRY/$DOCKER_PROJECT/igrp-gateway:$CI_PIPELINE_ID
+deploy:
+  image: gcc:latest
+  stage: deploy
+  only:
+    - main
+  script:
+    - |
+      curl -u "$DEPLOY_USER:$DEPLOY_PASSWORD" \
+        -X POST \
+        -H 'Accept: application/json' \
+        -H 'Content-Type: application/json' \
+        'https://manager.nosi.cv/v3/project/c-kthdc:p-tn7qs/workloads/deployment:integration-hub:igrp-gateway?action=redeploy'
