@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:24-jdk-alpine AS build
 
 WORKDIR /usr/src/service
 
@@ -11,7 +11,7 @@ COPY pom.xml pom.xml
 RUN chmod +x mvnw
 RUN ./mvnw clean package
 
-FROM eclipse-temurin:21-jdk-alpine
+FROM eclipse-temurin:24-jdk-alpine
 
 COPY --from=build /usr/src/service/target/igrp-cloud-gateway-0.0.1-SNAPSHOT-exec.jar ./igrp-cloud-gateway.jar
 

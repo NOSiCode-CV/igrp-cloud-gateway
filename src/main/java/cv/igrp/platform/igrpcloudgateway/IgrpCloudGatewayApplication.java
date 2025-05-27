@@ -9,8 +9,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * This gateway can be used as a library in other projects and supports both
  * Kubernetes and Eureka service discovery based on the active profile.
  * <p>
- * Use the 'dev' profile for local development with Eureka.
- * Use the 'prod' profile for production deployment with Kubernetes.
+ * Use the 'development' profile for local development with Eureka.
+ * Use the 'production' profile for production deployment with Kubernetes.
  */
 @SpringBootApplication
 @EnableDiscoveryClient
