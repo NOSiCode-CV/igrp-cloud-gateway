@@ -17,4 +17,4 @@ COPY --from=build /usr/src/service/target/igrp-cloud-gateway-0.0.1-SNAPSHOT-exec
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "./igrp-cloud-gateway.jar"]
+CMD ["java",  "--enable-native-access=ALL-UNNAMED", "-jar", "./igrp-cloud-gateway.jar"]
