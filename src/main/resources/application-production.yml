@@ -25,3 +25,4 @@ logging:
     root: ${GATEWAY_LOG_LEVEL:INFO}
     cv.igrp.platform: ${GATEWAY_LOG_LEVEL:INFO}
     org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:INFO}
+    reactor.netty.http.server: ${GATEWAY_LOG_LEVEL:INFO}
