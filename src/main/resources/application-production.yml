@@ -18,12 +18,11 @@ spring:
         enabled: true
       reload:
         enabled: true
-    gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-
+#    gateway:
+#      discovery:
+#        locator:
+#          enabled: true
+#          lower-case-service-id: true
 
 # Logging configuration
 logging:
