@@ -2,7 +2,6 @@ package cv.igrp.platform.igrpcloudgateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
  * Main application class for IGRP Cloud Gateway.
@@ -13,7 +12,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * Use the 'production' profile for production deployment with Kubernetes.
  */
 @SpringBootApplication
-@EnableDiscoveryClient
 public class IgrpCloudGatewayApplication {
 
     public static void main(String[] args) {

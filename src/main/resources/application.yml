@@ -1,15 +1,9 @@
+# General
 spring:
   application:
     name: igrp-cloud-gateway
-  # Default profile to use when not specified
   profiles:
     default: ${SPRING_PROFILES_ACTIVE:development}
-  cloud:
-    gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
 
 # Server configuration
 server:
@@ -20,7 +14,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: "*"
   endpoint:
     health:
-      show-details: when_authorized
+      show-details: always
+
+# Logging configuration
+logging:
+  level:
+    root: ${GATEWAY_LOG_LEVEL:DEBUG}
+    cv.igrp.platform: ${GATEWAY_LOG_LEVEL:DEBUG}
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:DEBUG}
+    reactor.netty.http.server: ${GATEWAY_LOG_LEVEL:DEBUG}
