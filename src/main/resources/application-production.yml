@@ -1,10 +1,11 @@
-# Eureka client configuration (disabled in production, using Kubernetes instead)
-eureka:
-  client:
-    enabled: false
-
 # Kubernetes configuration
 spring:
   cloud:
     discovery:
       enabled: true
+    kubernetes:
+      discovery:
+        enabled: true
+        all-namespaces: false
+        service-labels:
+          gateway.expose: "true"

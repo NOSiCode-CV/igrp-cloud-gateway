@@ -143,6 +143,33 @@ spring.cloud.gateway.routes[0].uri=lb://example-service
 spring.cloud.gateway.routes[0].predicates[0]=Path=/api/example/**
 ```
 
+## Configuration Validation
+
+The gateway includes a configuration validator that runs at startup to ensure your gateway is properly configured. The validator checks:
+
+1. **Active Profiles**: Verifies that the active profiles are properly set
+2. **Service Discovery**: Ensures that the appropriate service discovery mechanism is enabled based on the active profile
+   - For development: Eureka should be configured
+   - For production: Kubernetes discovery should be enabled
+3. **Routes Configuration**: Validates that each route has the required properties:
+   - A unique ID
+   - A valid URI
+   - At least one predicate to match requests
+
+If any issues are found, warnings will be logged to help you identify and fix the problems.
+
+### Example Log Output
+
+```
+INFO: Validating API Gateway configuration...
+INFO: Active profiles: [development]
+INFO: Found 1 route(s):
+INFO: Validating route: example-service
+INFO: Route 'example-service' uses load balancing (lb://) for service: example-service
+INFO: Route 'example-service' predicates: Path=/api/example/**
+INFO: API Gateway configuration validation completed successfully.
+```
+
 ## License
 
 [Your License Information]

@@ -3,11 +3,7 @@ spring:
   application:
     name: igrp-cloud-gateway
   profiles:
-    default: ${SPRING_PROFILES_ACTIVE:production}
-
-# Server configuration
-server:
-  port: ${GATEWAY_PORT:8081}
+    active: production
 
 # Actuator endpoints
 management:
