@@ -2,17 +2,32 @@
 
 A Spring Cloud Gateway implementation that can be used as a library in other projects. This gateway supports both Kubernetes and Eureka service discovery based on the active profile.
 
+## Overview
+
+The IGRP Cloud Gateway serves as an API Gateway for microservices architecture, providing a single entry point for client applications to access various services. It handles routing, load balancing, and service discovery, making it easier to manage and scale microservices.
+
+Key capabilities:
+- Dynamic routing to microservices
+- Load balancing between service instances
+- Service discovery integration
+- Profile-based configuration for different environments
+- Centralized request handling and monitoring
+
 ## Features
 
 - Service registration and discovery using either Kubernetes or Eureka
 - Profile-based configuration for development and production environments
 - Can be used as a library in other projects
+- Automatic service registration with Eureka in development mode
+- Kubernetes-native service discovery in production mode
+- Actuator endpoints for monitoring and management
+- Detailed logging for troubleshooting
 
 ## Requirements
 
 - Java 21
 - Spring Boot 3.4.6
-- Spring Cloud 2024.0.1
+- Spring Cloud 2025.0.0
 
 ## Usage
 
@@ -51,6 +66,76 @@ You can set this property in your application.properties/application.yml file or
 
 ```
 java -jar your-application.jar --spring.profiles.active=production
+```
+
+#### Configuration Files Structure
+
+The gateway uses the following configuration files:
+
+1. **application.yml** - Base configuration shared across all profiles
+   - Application name and default profile
+   - Actuator endpoints configuration
+   - Logging settings
+
+2. **application-development.yml** - Development-specific configuration
+   - Eureka client configuration
+   - Service discovery settings for development
+   - Disables Kubernetes discovery
+
+3. **application-production.yml** - Production-specific configuration
+   - Disables Eureka client
+   - Enables Kubernetes discovery
+   - Kubernetes-specific settings
+
+Here's a breakdown of key configuration properties:
+
+##### Base Configuration (application.yml)
+```yaml
+spring:
+  application:
+    name: igrp-cloud-gateway  # Application name used for service registration
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:production}  # Default profile, can be overridden with env variable
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,gateway,routes"  # Exposed actuator endpoints
+```
+
+##### Development Configuration (application-development.yml)
+```yaml
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}  # Eureka server URL
+  instance:
+    prefer-ip-address: true  # Register with IP address instead of hostname
+
+spring:
+  cloud:
+    discovery:
+      enabled: true  # Enable service discovery
+    kubernetes:
+      discovery:
+        enabled: false  # Disable Kubernetes discovery in development
+```
+
+##### Production Configuration (application-production.yml)
+```yaml
+eureka:
+  client:
+    enabled: false  # Disable Eureka in production
+
+spring:
+  cloud:
+    discovery:
+      enabled: true  # Enable service discovery
+    kubernetes:
+      discovery:
+        enabled: true  # Enable Kubernetes discovery
+        all-namespaces: false  # Only discover services in the same namespace
 ```
 
 ### Development Profile (dev)
@@ -118,6 +203,83 @@ The project includes Docker support for easy testing and deployment:
 - `.dockerignore` - Excludes unnecessary files from the Docker build context
 - `docker-compose.yml` - Sets up Eureka and optionally the gateway for testing
 
+### Docker Configuration Details
+
+#### Dockerfile
+
+The `Dockerfile` uses a multi-stage build process to create a lightweight container:
+
+```dockerfile
+# Build stage
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /usr/src/service
+COPY .mvn .mvn
+COPY src src
+COPY mvnw mvnw
+COPY mvnw.cmd mvnw.cmd
+COPY pom.xml pom.xml
+RUN chmod +x mvnw
+RUN ./mvnw clean package
+
+# Runtime stage
+FROM eclipse-temurin:21-jdk-alpine
+RUN apk add --no-cache curl
+COPY --from=build /usr/src/service/target/igrp-cloud-gateway-0.0.1-SNAPSHOT-exec.jar ./igrp-cloud-gateway.jar
+EXPOSE 8081
+CMD ["java", "-jar", "./igrp-cloud-gateway.jar"]
+```
+
+Key points:
+- Uses Eclipse Temurin JDK 21 Alpine for a small footprint
+- Multi-stage build to minimize final image size
+- Includes curl for health checks
+- Exposes port 8081 for the gateway service
+
+#### Docker Compose
+
+The `docker-compose.yml` file sets up a development environment with Eureka:
+
+```yaml
+services:
+  eureka-server:
+    image: steeltoeoss/eureka-server:latest
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+    networks:
+      - igrp-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  igrp-gateway:
+    build: .
+    container_name: igrp-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=development
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - igrp-network
+
+networks:
+  igrp-network:
+    driver: bridge
+```
+
+Key points:
+- Sets up an Eureka server using the steeltoeoss/eureka-server image
+- Configures the IGRP Gateway to use the development profile
+- Creates a dedicated network for service communication
+- Includes health checks for the Eureka server
+- Maps ports to the host for easy access
+
 ### Building the Docker Image Manually
 
 You can build the Docker image manually with:
@@ -128,6 +290,25 @@ mvn clean package
 
 # Build the Docker image
 docker build -t igrp-cloud-gateway .
+```
+
+### Environment Variables
+
+When running the Docker container, you can configure the gateway using environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SPRING_PROFILES_ACTIVE` | Active profile (development/production) | production |
+| `EUREKA_SERVICE_URL` | URL for Eureka server | http://localhost:8761/eureka/ |
+| `GATEWAY_LOG_LEVEL` | Log level for the application | DEBUG |
+
+Example:
+```bash
+docker run -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=development \
+  -e EUREKA_SERVICE_URL=http://my-eureka:8761/eureka/ \
+  -e GATEWAY_LOG_LEVEL=INFO \
+  igrp-cloud-gateway
 ```
 
 ## Customization
@@ -168,6 +349,65 @@ INFO: Validating route: example-service
 INFO: Route 'example-service' uses load balancing (lb://) for service: example-service
 INFO: Route 'example-service' predicates: Path=/api/example/**
 INFO: API Gateway configuration validation completed successfully.
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### Service Not Registering with Eureka in Development Mode
+
+**Symptom**: The gateway service doesn't appear in the Eureka dashboard when running in development mode.
+
+**Cause**: This can happen if service discovery is disabled in the configuration.
+
+**Solution**: Ensure that in `application-development.yml`, the following properties are set correctly:
+```yaml
+spring:
+  cloud:
+    discovery:
+      enabled: true  # Must be true for Eureka registration
+    kubernetes:
+      discovery:
+        enabled: false  # Should be false in development mode
+```
+
+#### Cannot Connect to Eureka Server
+
+**Symptom**: The application logs show connection errors to Eureka server.
+
+**Solution**:
+1. Verify that the Eureka server is running and accessible
+2. Check the Eureka URL in `application-development.yml`
+3. If running with Docker Compose, ensure the network configuration is correct
+4. Try accessing the Eureka dashboard directly in a browser
+
+#### Service Discovery Not Working in Production
+
+**Symptom**: Services cannot be discovered when running in Kubernetes.
+
+**Solution**:
+1. Verify that the application is running with the production profile
+2. Ensure the service account has permissions to access the Kubernetes API
+3. Check that services have the correct labels for discovery
+4. Verify network policies allow the gateway to access other services
+
+### Logging
+
+To enable detailed logging for troubleshooting, you can set the log level in `application.yml` or via environment variables:
+
+```yaml
+logging:
+  level:
+    root: DEBUG
+    cv.igrp.platform: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.server: DEBUG
+```
+
+Or using environment variables:
+```
+GATEWAY_LOG_LEVEL=DEBUG
 ```
 
 ## License

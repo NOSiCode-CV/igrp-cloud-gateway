@@ -10,4 +10,7 @@ eureka:
 spring:
   cloud:
     discovery:
-      enabled: false
+      enabled: true
+    kubernetes:
+      discovery:
+        enabled: false
