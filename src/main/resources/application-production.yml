@@ -1,3 +1,8 @@
+# Eureka client configuration (disabled in production, using Kubernetes instead)
+eureka:
+  client:
+    enabled: false
+
 # Kubernetes configuration
 spring:
   cloud:
