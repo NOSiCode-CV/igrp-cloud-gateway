@@ -1,11 +1,26 @@
 # Kubernetes configuration
 spring:
   cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              lower-case-service-id: true
+              enabled: true
+              include-expression: "metadata['gateway.expose'] == 'true'"
     discovery:
       enabled: true
     kubernetes:
       discovery:
         enabled: true
+        metadata:
+          add-labels: true
+          add-annotations: true
         all-namespaces: false
         service-labels:
           gateway.expose: "true"
+      reload:
+        enabled: true
+        mode: event
+        strategy: refresh

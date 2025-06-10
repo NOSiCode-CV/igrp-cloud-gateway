@@ -10,10 +10,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: "health,info,gateway,routes"
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
 
 # Logging configuration
 logging:
