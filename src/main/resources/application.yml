@@ -16,6 +16,8 @@ management:
       show-details: always
       probes:
         enabled: true
+    gateway:
+      access: unrestricted
 
 # Logging configuration
 logging:
