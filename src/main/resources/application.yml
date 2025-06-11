@@ -22,9 +22,12 @@ management:
 # Logging configuration
 logging:
   level:
-    root: ${GATEWAY_LOG_LEVEL:DEBUG}
-    cv.igrp.platform: ${GATEWAY_LOG_LEVEL:DEBUG}
-    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:DEBUG}
-    reactor.netty.http.server: ${GATEWAY_LOG_LEVEL:DEBUG}
+    root: ${ROOT_LOG_LEVEL:INFO}
+    cv.igrp.platform: INFO
+    org.springframework.cloud.gateway: INFO
     org.springframework.cloud.gateway.route.RouteDefinitionLocator: ${GATEWAY_LOG_LEVEL:DEBUG}
     org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: ${GATEWAY_LOG_LEVEL:DEBUG}
+    org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator: ${GATEWAY_LOG_LEVEL:DEBUG}
+    org.springframework.cloud.gateway.handler.predicate: ${GATEWAY_LOG_LEVEL:DEBUG}
+    org.springframework.cloud.loadbalancer: ${GATEWAY_LOG_LEVEL:DEBUG}
+    org.springframework.cloud.kubernetes.discovery: ${GATEWAY_LOG_LEVEL:DEBUG}
