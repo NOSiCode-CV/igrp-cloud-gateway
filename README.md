@@ -410,6 +410,40 @@ Or using environment variables:
 GATEWAY_LOG_LEVEL=DEBUG
 ```
 
+## API Client Configuration
+
+### Handling Redirects in API Clients
+
+When testing endpoints through the gateway, you may encounter issues with HTTP redirects. The gateway redirects requests to the appropriate backend services, but by default, many API clients change the HTTP method to GET when following redirects, regardless of the original method used (POST, PUT, DELETE, etc.).
+
+#### Postman Configuration
+
+In Postman, you need to enable the "Follow original HTTP Method" option:
+
+1. Open Postman and go to Settings (or press Ctrl+,)
+2. Navigate to the "General" tab
+3. Under "Request", find and enable the option "Follow original HTTP Method for redirects"
+4. Save your settings
+
+#### Insomnia Configuration
+
+In Insomnia, you need to enable a similar option:
+
+1. Open Insomnia and go to Application Settings
+2. Navigate to the "General" tab
+3. Enable the option "Follow redirects with the original HTTP method"
+4. Save your settings
+
+### Understanding 403 Responses
+
+If you receive a 403 Forbidden response when testing through the gateway, this may actually indicate a correct response depending on your authentication status. The gateway enforces security policies, and a 403 response often means that:
+
+1. The request reached the correct service
+2. The authentication was processed correctly
+3. The user does not have sufficient permissions for the requested resource
+
+Always check your authentication credentials and permissions when encountering 403 responses before assuming there's an issue with the gateway configuration.
+
 ## License
 
 [Your License Information]
