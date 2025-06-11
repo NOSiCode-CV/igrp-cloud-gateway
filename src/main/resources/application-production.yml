@@ -14,10 +14,6 @@ spring:
               lower-case-service-id: true
               enabled: true
               include-expression: "metadata['gateway.expose'] == 'true'"
-              predicates:
-                - name: Path
-                  args:
-                    pattern: "'/' + serviceId + '/**'"
     discovery:
       enabled: true
     kubernetes:
@@ -31,5 +27,3 @@ spring:
           gateway.expose: "true"
       reload:
         enabled: true
-        mode: event
-        strategy: refresh
