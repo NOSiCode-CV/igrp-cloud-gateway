@@ -18,6 +18,8 @@ management:
         enabled: true
     gateway:
       access: unrestricted
+    refresh:
+      access: unrestricted
 
 # Logging configuration
 logging:
