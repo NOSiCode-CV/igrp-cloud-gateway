@@ -324,6 +324,46 @@ spring.cloud.gateway.routes[0].uri=lb://example-service
 spring.cloud.gateway.routes[0].predicates[0]=Path=/api/example/**
 ```
 
+## Accessing Swagger UI JSON
+
+The API Gateway provides access to the Swagger UI JSON documentation for all registered microservices. This allows you to explore and test the APIs of your services through the gateway.
+
+### How to Access Swagger UI JSON
+
+To access the Swagger UI JSON documentation for a service, use the following URL pattern:
+
+```
+https://{gateway-url}/{service-name}/v3/api-docs
+```
+
+Where:
+- `{gateway-url}` is the base URL of your API Gateway
+- `{service-name}` is the name of the service as registered with the gateway
+
+### Example
+
+For a service named `cadastro-service` and a gateway deployed at `api-gateway.example.com`:
+
+```
+https://api-gateway.example.com/cadastro-service/v3/api-docs
+```
+
+This will return the OpenAPI 3.0 JSON specification for the service, which can be imported into tools like Swagger UI, Postman, or other API documentation viewers.
+
+### Using with Swagger UI
+
+You can also view the API documentation directly in Swagger UI by accessing:
+
+```
+https://{gateway-url}/{service-name}/swagger-ui.html
+```
+
+### Notes
+
+- The service must have SpringDoc OpenAPI configured to expose the API documentation
+- The gateway must be configured to route requests to the service correctly
+- Access to the API documentation may be subject to the same authentication and authorization rules as the service itself
+
 ## Configuration Validation
 
 The gateway includes a configuration validator that runs at startup to ensure your gateway is properly configured. The validator checks:
@@ -409,41 +449,6 @@ Or using environment variables:
 ```
 GATEWAY_LOG_LEVEL=DEBUG
 ```
-
-## API Client Configuration
-
-### Handling Redirects in API Clients
-
-When testing endpoints through the gateway, you may encounter issues with HTTP redirects. The gateway redirects requests to the appropriate backend services, but by default, many API clients change the HTTP method to GET when following redirects, regardless of the original method used (POST, PUT, DELETE, etc.).
-
-#### Postman Configuration
-
-In Postman, you need to enable the "Follow original HTTP Method" option:
-
-1. Open Postman and go to Settings (or press Ctrl+,)
-2. Navigate to the "General" tab
-3. Under "Request", find and enable the option "Follow original HTTP Method for redirects"
-4. Save your settings
-
-#### Insomnia Configuration
-
-In Insomnia, you need to enable a similar option:
-
-1. Open Insomnia and go to Application Settings
-2. Navigate to the "General" tab
-3. Enable the option "Follow redirects with the original HTTP method"
-4. Save your settings
-
-### Understanding 403 Responses
-
-If you receive a 403 Forbidden response when testing through the gateway, this may actually indicate a correct response depending on your authentication status. The gateway enforces security policies, and a 403 response often means that:
-
-1. The request reached the correct service
-2. The authentication was processed correctly
-3. The user does not have sufficient permissions for the requested resource
-
-Always check your authentication credentials and permissions when encountering 403 responses before assuming there's an issue with the gateway configuration.
-
 ## License
 
 [Your License Information]
