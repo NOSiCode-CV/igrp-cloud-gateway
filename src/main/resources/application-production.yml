@@ -31,11 +31,11 @@ spring:
         enabled: true
         mode: event
         strategy: refresh
-        period: 60000ms
+        period: 10000ms
 
     loadbalancer:
       cache:
-        ttl: 30
+        ttl: 15
         capacity: 256
       health-check:
         interval: 30s
