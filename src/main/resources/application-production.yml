@@ -11,10 +11,10 @@ spring:
         webflux:
           discovery:
             locator:
-              lower-case-service-id: true
+              lowerCaseServiceId: true
               enabled: true
-              include-expression: "metadata['gateway.expose'] == 'true'"
-          route-refresh-listener:
+              includeExpression: "metadata['gateway.expose'] == 'true'"
+          routeRefreshListener:
             enabled: true
     discovery:
       enabled: true
@@ -22,10 +22,10 @@ spring:
       discovery:
         enabled: true
         metadata:
-          add-labels: true
-          add-annotations: true
-        all-namespaces: false
-        service-labels:
+          addLabels: true
+          addAnnotations: true
+        allNamespaces: false
+        serviceLabels:
           gateway.expose: "true"
       reload:
         enabled: true
@@ -37,5 +37,5 @@ spring:
       cache:
         ttl: 15
         capacity: 256
-      health-check:
+      healthCheck:
         interval: 30s

@@ -1,17 +1,17 @@
 # Eureka client configuration
 eureka:
   client:
-    service-url:
+    serviceUrl:
       defaultZone: ${EUREKA_SERVICE_URL:http://localhost:8761/eureka/}
-    fetch-registry: true
-    registry-fetch-interval-seconds: 30
-    disable-delta: false
+    fetchRegistry: true
+    registryFetchIntervalSeconds: 30
+    disableDelta: false
     refresh:
       enable: true
   instance:
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 30
-    lease-expiration-duration-in-seconds: 90
+    preferIpAddress: true
+    leaseRenewalIntervalInSeconds: 30
+    leaseExpirationDurationInSeconds: 90
 
 # Kubernetes configuration
 spring:

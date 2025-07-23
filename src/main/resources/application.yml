@@ -13,7 +13,7 @@ management:
         include: "health,info,gateway,routes"
   endpoint:
     health:
-      show-details: always
+      showDetails: always
       probes:
         enabled: true
     gateway:
