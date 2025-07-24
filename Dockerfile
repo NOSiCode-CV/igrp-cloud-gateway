@@ -13,6 +13,8 @@ RUN ./mvnw clean package
 
 FROM eclipse-temurin:21-jdk-alpine
 
+RUN apk add --no-cache curl
+
 COPY --from=build /usr/src/service/target/igrp-cloud-gateway-0.0.1-SNAPSHOT-exec.jar ./igrp-cloud-gateway.jar
 
 EXPOSE 8081
