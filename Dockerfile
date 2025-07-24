@@ -11,7 +11,7 @@ COPY pom.xml pom.xml
 RUN chmod +x mvnw
 RUN ./mvnw clean package
 
-FROM eclipse-temurin:21-jdk-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 RUN apk add --no-cache curl
 
