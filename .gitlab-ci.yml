@@ -47,6 +47,16 @@ build-amd64:
   only:
     - master
 
+build-amd64-pre-release:
+  extends: .build-template
+  stage: build
+  script:
+    - docker buildx create --use --name amd64builder
+    - docker buildx inspect --bootstrap
+    - docker build --platform linux/amd64 -t $IMAGE_NAME_FULL:pre-release --push --output=type=image,name="$IMAGE_NAME_FULL:pre-release",push=true .
+  only:
+    - deploy/pre-release
+
 create-manifest:
   stage: manifest
   script:

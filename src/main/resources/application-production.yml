@@ -11,21 +11,36 @@ spring:
         webflux:
           discovery:
             locator:
-              lowerCaseServiceId: true
+              lower-case-service-id: true
               enabled: true
-              includeExpression: "metadata['gateway.expose'] == 'true'"
-          routeRefreshListener:
+              include-expression: "metadata['gateway.expose'] == 'true'"
+              predicates:
+                - name: Path
+                  args:
+                    pattern: "'/' + serviceId + '/**'"
+              filters:
+                - name: SetRequestHeader
+                  args:
+                    name: X-Forwarded-Prefix
+                    value: "'/' + serviceId"
+                - name: RewritePath
+                  args:
+                    regexp: "'/' + serviceId + '/?(?<remaining>.*)'"
+                    replacement: "'/${remaining}'"
+          route-refresh-listener:
             enabled: true
+
     discovery:
       enabled: true
+
     kubernetes:
       discovery:
         enabled: true
         metadata:
-          addLabels: true
-          addAnnotations: true
-        allNamespaces: false
-        serviceLabels:
+          add-labels: true
+          add-annotations: true
+        all-namespaces: false
+        service-labels:
           gateway.expose: "true"
       reload:
         enabled: true
@@ -37,5 +52,5 @@ spring:
       cache:
         ttl: 15
         capacity: 256
-      healthCheck:
+      health-check:
         interval: 30s
