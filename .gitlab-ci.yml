@@ -59,6 +59,8 @@ build-amd64-pre-release:
 
 create-manifest:
   stage: manifest
+  only:
+    - master
   script:
     - docker login -u "$DOCKER_REGISTRY_USERNAME" -p "$DOCKER_REGISTRY_PASSWORD" "$DOCKER_REGISTRY"
     - docker manifest create "$IMAGE_NAME_FULL:$IMAGE_TAG" --amend "$IMAGE_NAME_FULL:amd64" --amend "$IMAGE_NAME_FULL:arm64"
