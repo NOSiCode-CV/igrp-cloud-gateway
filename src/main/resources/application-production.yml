@@ -11,9 +11,9 @@ spring:
         webflux:
           discovery:
             locator:
-              lower-case-service-id: true
+              lowerCaseServiceId: true
               enabled: true
-              include-expression: "metadata['gateway.expose'] == 'true'"
+              includeExpression: "metadata['gateway.expose'] == 'true'"
               predicates:
                 - name: Path
                   args:
@@ -27,7 +27,7 @@ spring:
                   args:
                     regexp: "'/' + serviceId + '/?(?<remaining>.*)'"
                     replacement: "'/${remaining}'"
-          route-refresh-listener:
+          routeRefreshListener:
             enabled: true
 
     discovery:
@@ -37,10 +37,10 @@ spring:
       discovery:
         enabled: true
         metadata:
-          add-labels: true
-          add-annotations: true
-        all-namespaces: false
-        service-labels:
+          addLabels: true
+          addAnnotations: true
+        allNamespaces: false
+        serviceLabels:
           gateway.expose: "true"
       reload:
         enabled: true
@@ -52,5 +52,5 @@ spring:
       cache:
         ttl: 15
         capacity: 256
-      health-check:
+      healthCheck:
         interval: 30s
