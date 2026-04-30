@@ -21,7 +21,7 @@ spring:
               filters:
                 - name: SetRequestHeader
                   args:
-                    name: X-Forwarded-Prefix
+                    name: "'X-Forwarded-Prefix'"
                     value: "'/' + serviceId"
                 - name: RewritePath
                   args:
