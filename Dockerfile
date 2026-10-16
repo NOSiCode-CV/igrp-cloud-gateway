@@ -13,10 +13,18 @@ RUN ./mvnw clean package
 
 FROM eclipse-temurin:21-jre-alpine
 
-RUN apk add --no-cache curl
+# Pull the latest patched Alpine packages on top of the base image
+RUN apk upgrade --no-cache && apk add --no-cache curl
+
+# Run as an unprivileged user; numeric UID so Kubernetes runAsNonRoot can verify it
+RUN addgroup -S -g 1000 igrp && adduser -S -D -H -u 1000 -G igrp igrp
+
+WORKDIR /app
 
 COPY --from=build /usr/src/service/target/igrp-cloud-gateway-0.0.1-SNAPSHOT-exec.jar ./igrp-cloud-gateway.jar
 
-EXPOSE 8081
+USER 1000:1000
 
-CMD ["java", "-jar", "./igrp-cloud-gateway.jar"]
+EXPOSE 8080
+
+CMD ["java", "-jar", "/app/igrp-cloud-gateway.jar"]

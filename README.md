@@ -20,14 +20,17 @@ Key capabilities:
 - Can be used as a library in other projects
 - Automatic service registration with Eureka in development mode
 - Kubernetes-native service discovery in production mode
-- Actuator endpoints for monitoring and management
+- Actuator endpoints for monitoring and management (health probes only by default)
+- Hardening: services' actuator endpoints are never proxied and spoofed forwarded headers are dropped
+- OpenTelemetry observability: traces, metrics and logs exported over OTLP, with trace context propagated to downstream services
 - Detailed logging for troubleshooting
 
 ## Requirements
 
 - Java 21
-- Spring Boot 3.4.6
-- Spring Cloud 2025.0.0
+- Spring Boot 3.5.16
+- Spring Cloud 2025.0.3 (Spring Cloud Gateway 4.3.5)
+- Netty 4.1.139.Final (overrides the version managed by Spring Boot to pick up security fixes)
 
 ## Usage
 
@@ -101,7 +104,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,gateway,routes"  # Exposed actuator endpoints
+        include: "health"  # Exposed actuator endpoints (see Security)
 ```
 
 ##### Development Configuration (application-development.yml)
@@ -222,18 +225,23 @@ RUN chmod +x mvnw
 RUN ./mvnw clean package
 
 # Runtime stage
-FROM eclipse-temurin:21-jdk-alpine
-RUN apk add --no-cache curl
+FROM eclipse-temurin:21-jre-alpine
+RUN apk upgrade --no-cache && apk add --no-cache curl
+RUN addgroup -S -g 1000 igrp && adduser -S -D -H -u 1000 -G igrp igrp
+WORKDIR /app
 COPY --from=build /usr/src/service/target/igrp-cloud-gateway-0.0.1-SNAPSHOT-exec.jar ./igrp-cloud-gateway.jar
-EXPOSE 8081
-CMD ["java", "-jar", "./igrp-cloud-gateway.jar"]
+USER 1000:1000
+EXPOSE 8080
+CMD ["java", "-jar", "/app/igrp-cloud-gateway.jar"]
 ```
 
 Key points:
-- Uses Eclipse Temurin JDK 21 Alpine for a small footprint
-- Multi-stage build to minimize final image size
+- Uses Eclipse Temurin JRE 21 Alpine for a small footprint, with Alpine packages upgraded at build time
+- Multi-stage build to minimize final image size; the build stage runs the tests
+- Runs as the unprivileged user `igrp` (UID/GID 1000), compatible with Kubernetes `runAsNonRoot`
 - Includes curl for health checks
-- Exposes port 8081 for the gateway service
+- Exposes port 8080 for the gateway service
+- With `readOnlyRootFilesystem: true`, mount a writable `emptyDir` at `/tmp` (used by the JVM and Netty)
 
 #### Docker Compose
 
@@ -300,7 +308,14 @@ When running the Docker container, you can configure the gateway using environme
 |----------|-------------|---------|
 | `SPRING_PROFILES_ACTIVE` | Active profile (development/production) | production |
 | `EUREKA_SERVICE_URL` | URL for Eureka server | http://localhost:8761/eureka/ |
-| `GATEWAY_LOG_LEVEL` | Log level for the application | DEBUG |
+| `GATEWAY_LOG_LEVEL` | Log level of the routing/discovery loggers (`DEBUG` only to troubleshoot) | INFO |
+| `MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE` | Actuator endpoints exposed over HTTP | health |
+| `MANAGEMENT_SERVER_PORT` | Serve actuator on a separate port | (same as server) |
+| `SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_TRUSTEDPROXIES` | Regex of proxy IPs allowed to send forwarded headers | private ranges |
+| `IGRP_GATEWAY_BLOCKED_PATH_SEGMENTS` | Path segments never proxied to services | actuator |
+| `OTEL_DISABLED` | Disable the OpenTelemetry SDK (`false` to export telemetry) | true |
+| `OTEL_COLLECTOR_ENDPOINT` | OTLP/HTTP collector endpoint | http://localhost:4318 |
+| `OTEL_TRACES_EXPORTER` / `OTEL_METRICS_EXPORTER` / `OTEL_LOGS_EXPORTER` | Exporter per signal (`otlp`, `console`, `none`) | otlp |
 
 Example:
 ```bash
@@ -310,6 +325,68 @@ docker run -p 8080:8080 \
   -e GATEWAY_LOG_LEVEL=INFO \
   igrp-cloud-gateway
 ```
+
+## Security
+
+The gateway does not authenticate requests itself — each service validates its own tokens. Because anything the gateway exposes is public, it ships locked down:
+
+### Gateway actuator
+
+Only `/actuator/health` (and the `/liveness` / `/readiness` probes) is exposed, without details, and every endpoint is capped at read-only. The gateway endpoint that could create or refresh routes (`POST /actuator/gateway/routes/{id}`) is unreachable. To inspect routes, either expose more endpoints or — preferably — move actuator to a port that is not published by the Service/Ingress:
+
+```bash
+MANAGEMENT_SERVER_PORT=8082
+MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,gateway
+MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS=always
+```
+
+With a separate management port, point the Kubernetes liveness/readiness probes to it. Keep `MANAGEMENT_ENDPOINTS_ACCESS_MAXPERMITTED=read-only` unless you really need write operations, and never expose those on a public port.
+
+### Services' actuator endpoints
+
+Discovery routes forward `/{service}/**` to each service, which would make every service's actuator public (`/igrp-access-management/actuator/heapdump`, `/env`, ...). The gateway answers 404 to any request whose path contains an `actuator` segment below the root, including encoded or obfuscated variants (`%61ctuator`, `actuator;x=1`, `//actuator`, `a/../actuator`). The list of blocked segments is configurable with `IGRP_GATEWAY_BLOCKED_PATH_SEGMENTS` (comma-separated). Services should still restrict their own actuator exposure — this is defence in depth.
+
+### Forwarded headers
+
+Services rely on `X-Forwarded-For/Host/Proto/Port/Prefix` for client IPs and to build absolute URLs (OIDC issuer, redirects, e-mail links), so only the proxies in front of the gateway may set them. Trusted proxies are a Java regex on the peer IP (`spring.cloud.gateway.server.webflux.trusted-proxies`). The default trusts the private ranges (`10/8`, `172.16/12`, `192.168/16`, loopback, IPv6 ULA), where the ingress controller and pods live; narrow it to the ingress controller's pod network:
+
+```bash
+SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_TRUSTEDPROXIES='10\.42\.\d{1,3}\.\d{1,3}'
+```
+
+- **Trusted peer** — `X-Forwarded-*` headers are forwarded exactly as received; the gateway appends nothing. The proxy in front must therefore overwrite, not append to, any `X-Forwarded-For` sent by the client (ingress-nginx does so unless `use-forwarded-headers` is enabled).
+- **Any other peer** — `Forwarded`, `X-Forwarded-*` and `X-Real-IP` are stripped, including the `X-Forwarded-Prefix` set by the discovery routes.
+- A `Forwarded` (RFC 7239) header is never forwarded: Spring services prefer it over `X-Forwarded-*`.
+- Headers set by the routes (the production discovery routes set `X-Forwarded-Prefix: /{serviceId}`) replace the proxy's value.
+
+Do not set `trusted-proxies` to an empty value: Spring Cloud Gateway then removes every `X-Forwarded-*` header from all requests, which breaks the services' prefix and host handling. The gateway's own `Forwarded` / `X-Forwarded-*` writers are disabled in `application.yml` because they would drop the client IP from `X-Forwarded-For` and turn the routes' prefix into `/svc,/svc`.
+
+## Observability (OpenTelemetry)
+
+The gateway uses the [OpenTelemetry Spring Boot starter](https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/), the same setup as iGRP Access Management. When enabled it exports, over OTLP:
+
+- **Traces** — a server span for every request hitting the gateway. The W3C `traceparent`/`tracestate`/`baggage` headers are injected into each proxied request (`TraceContextPropagationHeadersFilter`), so downstream services continue the same trace with the gateway span as parent. An incoming `traceparent` from the caller is honoured.
+- **Metrics** — Micrometer meters (JVM, HTTP server, gateway, Reactor Netty…) bridged to OTLP.
+- **Logs** — Logback events shipped through the OTLP appender. Console lines are prefixed with `[service,traceId,spanId]` for correlation.
+
+The SDK is **disabled by default**. Enable it with:
+
+```bash
+OTEL_DISABLED=false
+OTEL_COLLECTOR_ENDPOINT=http://otel-collector:4318
+```
+
+Any standard `otel.*` property (e.g. `otel.traces.sampler`, `otel.resource.attributes`) can be set in `application.yml` or via the matching `OTEL_*` environment variable. The resource carries `service.name=igrp-cloud-gateway` and `deployment.environment=<active profile>`.
+
+### Local stack
+
+`docker-compose.yml` ships an opt-in Grafana stack (OTel collector, Tempo, Prometheus, Loki, Promtail, Grafana) under the `observability` profile, configured in `monitoring/`:
+
+```bash
+OTEL_DISABLED=false docker compose --profile observability up -d --build
+```
+
+Grafana runs at http://localhost:3000 (admin/admin) with the Tempo, Prometheus and Loki datasources provisioned. When running the gateway outside Docker, point it at `OTEL_COLLECTOR_ENDPOINT=http://localhost:4318`.
 
 ## Customization
 
